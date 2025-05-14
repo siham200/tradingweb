@@ -1,12 +1,12 @@
 import streamlit as st
 from datetime import datetime
+from database.db import authenticate_user, init_db
+
+# Initialisation de la base
+init_db()
 
 # Configuration de la page
-st.set_page_config(
-    layout="wide",
-    page_title="TRADINGWEB - Connexion",
-    initial_sidebar_state="collapsed"
-)
+st.set_page_config(page_title="Connexion - TRADINGWEB", layout="centered")
 
 # CSS moderne
 st.markdown(f"""
@@ -77,63 +77,47 @@ st.markdown(f"""
             margin-top: 80px;
             background: linear-gradient(135deg, #0f0f1a 0%, #1e1e2f 100%);
             min-height: calc(100vh - 80px);
+            color: white;
         }}
         
-        /* Carte de connexion moderne */
-        .login-card {{
-            max-width: 500px;
-            margin: 2rem auto;
-            padding: 2.5rem;
+        /* Carte de contrôle moderne */
+        .control-card {{
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }}
         
-        .login-title {{
-            color: white;
-            font-size: 2rem;
+        /* Titres modernes */
+        .section-title {{
+            font-size: 1.8rem;
             font-weight: 700;
-            margin-bottom: 1.5rem;
-            text-align: center;
+            margin-bottom: 1rem;
             background: linear-gradient(90deg, #f6a623 0%, #ffd166 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }}
         
-        /* Inputs modernes */
-        .stTextInput>div>div>input, 
-        .stTextInput>div>div>input:focus {{
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            padding: 12px;
-            border-radius: 8px;
+        /* Sélecteurs modernes */
+        .stSelectbox>div>div {{
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+            border-radius: 8px !important;
         }}
         
-        .stTextInput>label {{
-            color: rgba(255, 255, 255, 0.7) !important;
-            font-weight: 500;
+        .stSelectbox label {{
+            color: rgba(255, 255, 255, 0.8) !important;
+            font-weight: 500 !important;
         }}
         
-        /* Bouton moderne */
-        .stButton>button {{
-            width: 100%;
-            background: linear-gradient(90deg, #f6a623 0%, #ff9a3c 100%);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            margin-top: 1rem;
-        }}
-        
-        .stButton>button:hover {{
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(246, 166, 35, 0.3);
+        /* Graphiques modernes */
+        .js-plotly-plot .plotly {{
+            background: transparent !important;
         }}
         
         /* Footer moderne */
@@ -146,36 +130,20 @@ st.markdown(f"""
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }}
         
-        .footer-links {{
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-bottom: 1rem;
-        }}
-        
-        .footer-links a {{
-            color: rgba(255, 255, 255, 0.7);
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }}
-        
-        .footer-links a:hover {{
-            color: #f6a623;
-        }}
-        
         .copyright {{
             color: rgba(255, 255, 255, 0.5);
             font-size: 0.9rem;
         }}
         
-        /* Animation subtile */
-        @keyframes fadeIn {{
-            from {{ opacity: 0; transform: translateY(20px); }}
-            to {{ opacity: 1; transform: translateY(0); }}
+        /* Animation de chargement */
+        @keyframes pulse {{
+            0% {{ opacity: 0.5; }}
+            50% {{ opacity: 1; }}
+            100% {{ opacity: 0.5; }}
         }}
         
-        .login-card {{
-            animation: fadeIn 0.6s ease-out;
+        .loading-text {{
+            animation: pulse 1.5s infinite;
         }}
     </style>
 """, unsafe_allow_html=True)
@@ -194,47 +162,38 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# --- Contenu de connexion ---
-col1, col2, col3 = st.columns([1, 2, 1])
+# Contenu principal
+st.markdown('<div class="login-container">', unsafe_allow_html=True)
+st.markdown('<div class="login-title">Connexion à TRADINGWEB</div>', unsafe_allow_html=True)
 
-with col2:
-    st.markdown("""
-    <div class="login-card">
-        <div class="login-title">Connexion</div>
-    """, unsafe_allow_html=True)
-    
-    with st.form("login_form"):
-        username = st.text_input("Nom d'utilisateur")
-        password = st.text_input("Mot de passe", type="password")
-        submitted = st.form_submit_button("Se connecter")
-        
-        if submitted:
-            if username and password:
+with st.form("login_form"):
+    username = st.text_input("Nom d'utilisateur")
+    password = st.text_input("Mot de passe", type="password")
+    submitted = st.form_submit_button("Se connecter")
+
+    if submitted:
+        if username and password:
+            if authenticate_user(username, password):
                 st.session_state.logged_in = True
                 st.session_state.username = username
-                st.success("Connecté avec succès!")
+                st.success("✅ Connexion réussie")
                 st.rerun()
             else:
-                st.error("Veuillez remplir tous les champs")
-    
-    st.markdown("""
-        <div style="text-align: center; margin-top: 1.5rem; color: rgba(255,255,255,0.6);">
-            Nouveau sur TRADINGWEB ? <a href="/register" style="color: #f6a623; text-decoration: none;">Créer un compte</a>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+                st.error("❌ Nom d'utilisateur ou mot de passe incorrect")
+        else:
+            st.warning("⚠️ Remplissez tous les champs")
 
-# --- Footer ---
-st.markdown(f"""
-    <div class="custom-footer">
-        <div class="footer-links">
-            <a href="/about">À propos</a>
-            <a href="/contact">Contact</a>
-            <a href="/privacy">Confidentialité</a>
-            <a href="/terms">Conditions</a>
-        </div>
-        <div class="copyright">
-            © {datetime.now().year} TRADINGWEB. Tous droits réservés.
-        </div>
+st.markdown("""
+    <div style="text-align: center; margin-top: 1rem;">
+        <span style="color: rgba(255,255,255,0.6);">Nouveau ?</span>
+        <a href="/login" style="color: #f6a623; text-decoration: none; font-weight: 500;">Créer un compte</a>
     </div>
 """, unsafe_allow_html=True)
+st.markdown("""
+    <div style="text-align: center; margin-top: 0.8rem;">
+        <a href="/forget_passw" style="color: #f6a623; text-decoration: none; font-size: 0.9rem;">
+            🔐 Mot de passe oublié ?
+        </a>
+    </div>
+""", unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)

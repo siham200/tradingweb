@@ -10,6 +10,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from forex_api import get_forex_data
 
 
+# Vérifier la connexion avant d'afficher la page des indicateurs
+
 # Configuration
 st.set_page_config(
     page_title="Tableau Forex", 

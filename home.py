@@ -1,6 +1,6 @@
 import streamlit as st
 from datetime import datetime
-
+from database.db import init_db
 # Configuration de la page
 st.set_page_config(
     page_title="TRADINGWEB - Accueil", 
@@ -11,6 +11,12 @@ st.set_page_config(
 # État de connexion
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
+
+from database.db import init_db
+
+# L'appel unique ici
+init_db()
+
 
 # CSS complet
 st.markdown("""
@@ -241,7 +247,7 @@ st.markdown("""
 if not st.session_state.logged_in:
     st.markdown("""
         <div style="margin-top: 2rem;">
-            <button class="btn" onclick="window.location"><a href="/conn" target="_self">Créer un compte</a></button>
+            <button class="btn" onclick="window.location"><a href="/login" target="_self">Créer un compte</a></button>
             <button class="btn btn-outline" "><a href="/conn" target="_self">Se connecter</a></button>
         </div>
     """, unsafe_allow_html=True)
